@@ -121,13 +121,22 @@ class Response extends AbstractResponse
 
         $json = json_encode($object);
 
-        if (null !== $jsonp_prefix) {
+        if($jsonp_prefix === null){
+            if(isset($_GET['callback'])){
+                $jsonp_prefix=$_GET['callback'];
+            }else{
+                $jsonp_prefix=false;
+            }
+        }
+
+        if (false === $jsonp_prefix) {
+            $this->header('Content-Type', 'application/json');
+            $this->body($json);
+
+        } else {
             // Should ideally be application/json-p once adopted
             $this->header('Content-Type', 'text/javascript');
             $this->body("$jsonp_prefix($json);");
-        } else {
-            $this->header('Content-Type', 'application/json');
-            $this->body($json);
         }
 
         $this->send();
